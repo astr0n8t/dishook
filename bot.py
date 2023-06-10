@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     for cmd in commands:
         print("Loading command: '" + cmd.name + "' with desc: '" + cmd.desc + "'")
-        exec(cmd_builder(cmd.name, cmd.desc, cmd.resp, cmd.url, cmd.headers, cmd.data))
+        exec(cmd_builder(cmd.name, cmd.desc, cmd.resp, cmd.url, cmd.headers, cmd.data, cmd.group))
     
     print("Success.  Starting dishook...")
     bot.run(token)

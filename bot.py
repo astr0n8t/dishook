@@ -1,14 +1,27 @@
 import requests
-import discord
-import dotenv
 import os
 
 from dataclasses import dataclass
 
-dotenv.load_dotenv()
-token = str(os.getenv("DISCORD_TOKEN"))
+token = os.getenv("DISCORD_TOKEN")
 
-bot = discord.Bot()
+if token:
+    environment = "production"
+    # Make sure token is treated as a string
+    token = str(token)
+else:
+    environment = "testing"
+    print("DISCORD_TOKEN not set")
+
+print("Current environment is: {}".format(environment))
+
+if environment == "production":
+    import discord
+    import dotenv
+
+    dotenv.load_dotenv()
+
+    bot = discord.Bot()
 
 @dataclass
 class Command:
@@ -18,6 +31,7 @@ class Command:
     url: str
     headers: str
     data: str
+    args: int
     group: str
 
 @dataclass
@@ -30,9 +44,21 @@ def cmd_builder(cmd):
 
     cmd_string = "@" + cmd.group + ".command(description='" + cmd.desc + """')
 async def """ + cmd.name + """(ctx"""
+    for i in range(cmd.args):
+        cmd_string += ", arg" + str(i) + ": discord.Option(discord.SlashCommandOptionType.string)"
 
-    cmd_string += """):
-    req = requests.post('""" + cmd.url + """', headers=""" + cmd.headers + """, data=""" + cmd.data + """)
+    if cmd.args > 0:
+        cmd_string += """):
+    data = '""" + cmd.data + "'.format("
+        for i in range(cmd.args):
+            cmd_string += "arg" + str(i) + ", "
+        cmd_string = cmd_string[:-2] + ")" 
+    else:
+        cmd_string += """):
+    data = '""" + cmd.data + "'"
+
+    cmd_string += """
+    req = requests.post('""" + cmd.url + """', headers=""" + cmd.headers + """, data=data)
     await ctx.respond(f\"""" + cmd.resp + "\")"
 
     return cmd_string
@@ -53,12 +79,15 @@ def get_commands():
             url=str(os.getenv(str(current_prefix  + "_URL"))),
             headers="{}",
             data="{}",
+            args=0,
             group="bot"
         )
         if os.getenv(str(current_prefix + "_HEADERS")):
             cmd.headers = str(os.getenv(str(current_prefix + "_HEADERS")))
         if os.getenv(str(current_prefix + "_DATA")):
-            cmd.headers = str(os.getenv(str(current_prefix + "_DATA")))
+            cmd.data = str(os.getenv(str(current_prefix + "_DATA")))
+        if os.getenv(str(current_prefix + "_ARGS")):
+            cmd.args = int(os.getenv(str(current_prefix + "_ARGS")))
         if os.getenv(str(current_prefix + "_GROUP")):
             cmd.group = str(os.getenv(str(current_prefix + "_GROUP")))
         commands.append(cmd) 
@@ -91,12 +120,19 @@ if __name__ == '__main__':
 
     for group in groups:
         print("Loading groups: '" + group.name + "' with desc: '" + group.desc + "'")
-        exec(group_builder(group))
+        if environment == "production":
+            exec(group_builder(group))
+        else:
+            print(group_builder(group))
 
     for cmd in commands:
         print("Loading command: '" + cmd.name + "' with desc: '" + cmd.desc + "'")
-        exec(cmd_builder(cmd))
+        if environment == "production":
+            exec(cmd_builder(cmd))
+        else:
+            print(cmd_builder(cmd))
     
     print("Success.  Starting dishook...")
-    bot.run(token)
+    if token:
+        bot.run(token)
     

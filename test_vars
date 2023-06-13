@@ -1,0 +1,14 @@
+#!/bin/bash
+
+export DISHOOK_COMMAND_0="cmd0"
+export DISHOOK_COMMAND_0_DESCRIPTION="description0"
+export DISHOOK_COMMAND_0_RESPONSE="response0"
+export DISHOOK_COMMAND_0_URL="https://url.0"
+export DISHOOK_COMMAND_0_HEADERS="headers0"
+export DISHOOK_COMMAND_0_DATA="data0 {} {}"
+export DISHOOK_COMMAND_0_ARGS="2"
+export DISHOOK_COMMAND_1="cmd1"
+export DISHOOK_COMMAND_1_DESCRIPTION="description1"
+export DISHOOK_COMMAND_1_RESPONSE="response1"
+export DISHOOK_COMMAND_1_URL="https://url.1"
+export DISHOOK_COMMAND_1_DATA="data1"

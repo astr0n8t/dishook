@@ -3,6 +3,9 @@ import os
 
 from dataclasses import dataclass
 
+# We check if the discord token exists 
+# to see if  we're just testing or actually
+# running the bot
 token = os.getenv("DISCORD_TOKEN")
 
 if token:
@@ -25,6 +28,9 @@ if environment == "production":
 
 @dataclass
 class Command:
+    """
+    Struct that holds the information about a command.
+    """
     name: str
     desc: str
     resp: str
@@ -32,26 +38,38 @@ class Command:
     headers: str
     data: str
     args: int
+    arg_names: dict
     group: str
 
 @dataclass
 class Group:
+    """
+    Struct that holds the information about a group.
+    """
     name: str
     desc: str
     parent: str
 
 def cmd_builder(cmd):
+    """
+    This function generates the actual function that will be executed at runtime.
+    It is not what most people would consider "clean code" but its literally
+    generating Python code on the fly so forgive the abysmal syntax.
+
+    I may refactor it if I continue to add functionality.
+    Till then good luck.
+    """
 
     cmd_string = "@" + cmd.group + ".command(description='" + cmd.desc + """')
 async def """ + cmd.name + """(ctx"""
     for i in range(cmd.args):
-        cmd_string += ", arg" + str(i) + ": discord.Option(discord.SlashCommandOptionType.string)"
+        cmd_string += ", " + (cmd.arg_names[i] if i in cmd.arg_names else str("arg" + str(i))) + ": discord.Option(discord.SlashCommandOptionType.string)"
 
     if cmd.args > 0:
         cmd_string += """):
     data = '""" + cmd.data + "'.format("
         for i in range(cmd.args):
-            cmd_string += "arg" + str(i) + ", "
+            cmd_string += (cmd.arg_names[i] if i in cmd.arg_names else str("arg" + str(i))) + ", "
         cmd_string = cmd_string[:-2] + ")" 
     else:
         cmd_string += """):
@@ -64,9 +82,18 @@ async def """ + cmd.name + """(ctx"""
     return cmd_string
 
 def group_builder(group):
+    """
+    This function creates a new command group at runtime if needed.
+    I guess I would call this clean although cmd_builder also used to be like this.
+    """
     return group.name + " = " + group.parent + ".create_group('" + group.name + "', '" + group.desc + "')"
 
 def get_commands():
+    """
+    This function parses the environment variables that contain the commands.
+    I am honestly okay with this function.  If I add much more to it, it might
+    be getting to be too much, but in its current state it seems okay.
+    """
     commands = []
     dishook_prefix = "DISHOOK_COMMAND_"
     i = 0
@@ -80,6 +107,7 @@ def get_commands():
             headers="{}",
             data="{}",
             args=0,
+            arg_names={},
             group="bot"
         )
         if os.getenv(str(current_prefix + "_HEADERS")):
@@ -88,6 +116,9 @@ def get_commands():
             cmd.data = str(os.getenv(str(current_prefix + "_DATA")))
         if os.getenv(str(current_prefix + "_ARGS")):
             cmd.args = int(os.getenv(str(current_prefix + "_ARGS")))
+            for x in range(cmd.args):
+                if os.getenv(str(current_prefix + "_ARG_" + str(x) + "_NAME")):
+                    cmd.arg_names[x] = str(os.getenv(str(current_prefix + "_ARG_" + str(x) + "_NAME")))
         if os.getenv(str(current_prefix + "_GROUP")):
             cmd.group = str(os.getenv(str(current_prefix + "_GROUP")))
         commands.append(cmd) 
@@ -95,6 +126,10 @@ def get_commands():
     return commands
 
 def get_groups():
+    """
+    This function parses the environment variables that contain the command groups.
+    Its pretty similar to get_commands but for groups instead.
+    """
     groups = []
     dishook_prefix = "DISHOOK_GROUP_"
     i = 0

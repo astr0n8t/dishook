@@ -26,15 +26,19 @@ class Group:
     desc: str
     parent: str
 
-def cmd_builder(name, desc, resp, url, headers, data, group):
+def cmd_builder(cmd):
 
-    return"@" + group + ".command(description='" + desc + """')
-async def """ + name + """(ctx):
-    req = requests.post('""" + url + """', headers=""" + headers + """, data=""" + data + """)
-    await ctx.respond(f\"""" + resp + "\")"
+    cmd_string = "@" + cmd.group + ".command(description='" + cmd.desc + """')
+async def """ + cmd.name + """(ctx"""
 
-def group_builder(name, desc, parent):
-    return name + " = " + parent + ".create_group('" + name + "', '" + desc + "')"
+    cmd_string += """):
+    req = requests.post('""" + cmd.url + """', headers=""" + cmd.headers + """, data=""" + cmd.data + """)
+    await ctx.respond(f\"""" + cmd.resp + "\")"
+
+    return cmd_string
+
+def group_builder(group):
+    return group.name + " = " + group.parent + ".create_group('" + group.name + "', '" + group.desc + "')"
 
 def get_commands():
     commands = []
@@ -87,11 +91,11 @@ if __name__ == '__main__':
 
     for group in groups:
         print("Loading groups: '" + group.name + "' with desc: '" + group.desc + "'")
-        exec(group_builder(group.name, group.desc, group.parent))
+        exec(group_builder(group))
 
     for cmd in commands:
         print("Loading command: '" + cmd.name + "' with desc: '" + cmd.desc + "'")
-        exec(cmd_builder(cmd.name, cmd.desc, cmd.resp, cmd.url, cmd.headers, cmd.data, cmd.group))
+        exec(cmd_builder(cmd))
     
     print("Success.  Starting dishook...")
     bot.run(token)

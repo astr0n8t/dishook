@@ -38,6 +38,7 @@ class Command:
     headers: str
     data: str
     args: int
+    user_arg: bool
     arg_names: dict
     group: str
 
@@ -70,7 +71,13 @@ async def """ + cmd.name + """(ctx"""
     data = '""" + cmd.data + "'.format("
         for i in range(cmd.args):
             cmd_string += (cmd.arg_names[i] if i in cmd.arg_names else str("arg" + str(i))) + ", "
-        cmd_string = cmd_string[:-2] + ")" 
+        if cmd.user_arg:
+            cmd_string += "user=ctx.message.author.id)" 
+        else:
+            cmd_string = cmd_string[:-2] + ")" 
+    elif cmd.args == 0 and cmd.user_arg:
+        cmd_string += """):
+    data = '""" + cmd.data + "'.format(user=ctx.message.author.id)"
     else:
         cmd_string += """):
     data = '""" + cmd.data + "'"
@@ -107,6 +114,7 @@ def get_commands():
             headers="{}",
             data="{}",
             args=0,
+            user_arg=False,
             arg_names={},
             group="bot"
         )
@@ -114,11 +122,13 @@ def get_commands():
             cmd.headers = str(os.getenv(str(current_prefix + "_HEADERS")))
         if os.getenv(str(current_prefix + "_DATA")):
             cmd.data = str(os.getenv(str(current_prefix + "_DATA")))
-        if os.getenv(str(current_prefix + "_ARGS")):
-            cmd.args = int(os.getenv(str(current_prefix + "_ARGS")))
-            for x in range(cmd.args):
-                if os.getenv(str(current_prefix + "_ARG_" + str(x) + "_NAME")):
-                    cmd.arg_names[x] = str(os.getenv(str(current_prefix + "_ARG_" + str(x) + "_NAME")))
+            if os.getenv(str(current_prefix + "_USER_ARG")):
+                cmd.user_arg = True
+            if os.getenv(str(current_prefix + "_ARGS")):
+                cmd.args = int(os.getenv(str(current_prefix + "_ARGS")))
+                for x in range(cmd.args):
+                    if os.getenv(str(current_prefix + "_ARG_" + str(x) + "_NAME")):
+                        cmd.arg_names[x] = str(os.getenv(str(current_prefix + "_ARG_" + str(x) + "_NAME")))
         if os.getenv(str(current_prefix + "_GROUP")):
             cmd.group = str(os.getenv(str(current_prefix + "_GROUP")))
         commands.append(cmd) 

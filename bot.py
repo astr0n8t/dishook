@@ -72,12 +72,12 @@ async def """ + cmd.name + """(ctx"""
         for i in range(cmd.args):
             cmd_string += (cmd.arg_names[i] if i in cmd.arg_names else str("arg" + str(i))) + ", "
         if cmd.user_arg:
-            cmd_string += "user=ctx.message.author.id)" 
+            cmd_string += "user=ctx.author.id)" 
         else:
             cmd_string = cmd_string[:-2] + ")" 
     elif cmd.args == 0 and cmd.user_arg:
         cmd_string += """):
-    data = '""" + cmd.data + "'.format(user=ctx.message.author.id)"
+    data = '""" + cmd.data + "'.format(user=ctx.author.id)"
     else:
         cmd_string += """):
     data = '""" + cmd.data + "'"

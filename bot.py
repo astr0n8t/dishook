@@ -40,6 +40,7 @@ class Command:
     args: int
     user_arg: bool
     arg_names: dict
+    arg_defaults: dict
     group: str
 
 @dataclass
@@ -64,7 +65,7 @@ def cmd_builder(cmd):
     cmd_string = "@" + cmd.group + ".command(description='" + cmd.desc + """')
 async def """ + cmd.name + """(ctx"""
     for i in range(cmd.args):
-        cmd_string += ", " + (cmd.arg_names[i] if i in cmd.arg_names else str("arg" + str(i))) + ": discord.Option(discord.SlashCommandOptionType.string)"
+        cmd_string += ", " + (cmd.arg_names[i] if i in cmd.arg_names else str("arg" + str(i))) + (str("='" + cmd.arg_defaults[i] + "'") if i in cmd.arg_defaults else "")
 
     if cmd.args > 0:
         cmd_string += """):
@@ -116,6 +117,7 @@ def get_commands():
             args=0,
             user_arg=False,
             arg_names={},
+            arg_defaults={},
             group="bot"
         )
         if os.getenv(str(current_prefix + "_HEADERS")):
@@ -129,6 +131,8 @@ def get_commands():
                 for x in range(cmd.args):
                     if os.getenv(str(current_prefix + "_ARG_" + str(x) + "_NAME")):
                         cmd.arg_names[x] = str(os.getenv(str(current_prefix + "_ARG_" + str(x) + "_NAME")))
+                    if os.getenv(str(current_prefix + "_ARG_" + str(x) + "_DEFAULT")):
+                        cmd.arg_defaults[x] = str(os.getenv(str(current_prefix + "_ARG_" + str(x) + "_DEFAULT")))
         if os.getenv(str(current_prefix + "_GROUP")):
             cmd.group = str(os.getenv(str(current_prefix + "_GROUP")))
         commands.append(cmd) 

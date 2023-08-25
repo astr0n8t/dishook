@@ -1,8 +1,18 @@
-# DisHook
+# dishook
 
-Convert slash commands to webhooks... Thats it.
+Converts discord slash commands to webhooks.
 
+## Getting started
 
-### TODO
+This project requires Go to be installed. On OS X with Homebrew you can just run `brew install go`.
 
-- [ ] Document environment variables
+Running it then should be as simple as:
+
+```console
+$ make
+$ ./bin/dishook
+```
+
+### Testing
+
+``make test``

@@ -10,8 +10,12 @@ commands:
     arguments:
       - name: arg1
         type: string
+        description: argument 1
+        required: true
       - name: arg2
         type: int
+        description: argument 2
+        required: false
     data: 
       user: "{{ arg1 }}"
       id: "{{ arg2 }}"

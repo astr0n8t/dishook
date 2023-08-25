@@ -25,6 +25,7 @@ type Provider interface {
 	GetTime(key string) time.Time
 	InConfig(key string) bool
 	IsSet(key string) bool
+	UnmarshalKey(string, interface{}, ...viper.DecoderConfigOption) error
 }
 
 var defaultConfig *viper.Viper
@@ -45,11 +46,17 @@ func init() {
 
 func readViperConfig(appName string) *viper.Viper {
 	v := viper.New()
+
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+
+	v.AddConfigPath(".")
+	v.AddConfigPath("/etc/dishook/")
+
+	v.ReadInConfig()
+
 	v.SetEnvPrefix(appName)
 	v.AutomaticEnv()
-
-	// global defaults
-	
 
 	return v
 }

@@ -25,5 +25,6 @@ func (w *WebhookSlashCommand) Info() *discordgo.ApplicationCommand {
 
 // The actual function that gets called when a command is run
 func (w *WebhookSlashCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	request(*w)
 	return
 }

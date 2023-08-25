@@ -39,20 +39,46 @@ func Run() {
 
 	token := config.GetString("token")
 
-	//session :=
-	login(token)
+	session := login(token)
 
-	commands := []WebhookSlashCommand{}
+	tmpCommands := []WebhookSlashCommand{}
+	commands := map[string]WebhookSlashCommand{}
 
-	configErr := config.UnmarshalKey("commands", &commands)
+	configErr := config.UnmarshalKey("commands", &tmpCommands)
 	if configErr != nil {
 		log.Fatalf("Unable to read config: %v ", configErr)
+	}
+
+	for _, cmd := range tmpCommands {
+		commands[cmd.Name] = cmd
+	}
+
+	session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if cmd, ok := commands[i.ApplicationCommandData().Name]; ok {
+			cmd.Handler(s, i)
+		}
+	})
+
+	createdCommands := []*discordgo.ApplicationCommand{}
+	for _, cmd := range commands {
+		createdCommand, err := session.ApplicationCommandCreate(session.State.User.ID, "", cmd.Info())
+		if err != nil {
+			log.Printf("Failed to register command: ", cmd.Name)
+		}
+		createdCommands = append(createdCommands, createdCommand)
 	}
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	log.Println("Press Ctrl+c to exit")
 	<-stop
+
+	for _, cmd := range createdCommands {
+		err := session.ApplicationCommandDelete(session.State.User.ID, "", cmd.ID)
+		if err != nil {
+			log.Printf("Failed to remove command: %v with error %v ", cmd.Name, err)
+		}
+	}
 
 	return
 }

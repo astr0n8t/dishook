@@ -1,0 +1,22 @@
+token: my_secret
+commands:
+  - name: test
+    description: my pretty command
+    response: my lovely response
+    url: https://google.com
+    headers:
+      - name: X-Forwarded-For
+        value: somevalue
+    arguments:
+      - name: arg1
+        type: string
+      - name: arg2
+        type: int
+    data: 
+      user: "{{ arg1 }}"
+      id: "{{ arg2 }}"
+  - name: short_test
+    description: my pretty short command
+    response: my quick lovely response
+    url: https://github.com
+

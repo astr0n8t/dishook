@@ -3,13 +3,16 @@ package internal
 import "github.com/bwmarrin/discordgo"
 
 type WebhookSlashCommand struct {
-	Name      string                 `mapstructure:"name"`
-	Desc      string                 `mapstructure:"description"`
-	Resp      string                 `mapstructure:"response"`
-	URL       string                 `mapstructure:"url"`
-	Headers   []WebhookHeader        `mapstructure:"headers"`
-	Arguments []WebhookArgument      `mapstructure:"arguments"`
-	Data      map[string]interface{} `mapstructure:"data"`
+	Name          string                         `mapstructure:"name"`
+	Desc          string                         `mapstructure:"description"`
+	Resp          string                         `mapstructure:"response"`
+	URL           string                         `mapstructure:"url"`
+	Headers       []WebhookHeader                `mapstructure:"headers"`
+	SubCmd        map[string]WebhookSlashCommand `mapstructure:"subcommand"`
+	SubCmdGrp     map[string]WebhookSlashCommand `mapstructure:"subcommand-group"`
+	Arguments     []WebhookArgument              `mapstructure:"arguments"`
+	Data          map[string]interface{}         `mapstructure:"data"`
+	CalledOptions []*discordgo.ApplicationCommandInteractionDataOption
 }
 
 type WebhookHeader struct {

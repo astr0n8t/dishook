@@ -34,51 +34,102 @@ func login(token string) *discordgo.Session {
 	return s
 }
 
-func Run() {
-	config := config.Config()
-
-	token := config.GetString("token")
-
-	session := login(token)
-
-	tmpCommands := []WebhookSlashCommand{}
+func getCommandsFromConfig(config config.Provider) map[string]WebhookSlashCommand {
+	// Store the commands in a map
 	commands := map[string]WebhookSlashCommand{}
 
-	configErr := config.UnmarshalKey("commands", &tmpCommands)
+	// Try to read in the commands from the config
+	configErr := config.UnmarshalKey("commands", &commands)
 	if configErr != nil {
 		log.Fatalf("Unable to read config: %v ", configErr)
 	}
 
-	for _, cmd := range tmpCommands {
-		commands[cmd.Name] = cmd
+	// Add the names to the commands
+	for name, cmd := range commands {
+		cmd.Name = name
+		// For sub command groups, it needs to add names to the
+		// command group itself as well as its sub commands
+		for subCmdGrpName, subCmdGrp := range cmd.SubCmdGrp {
+			subCmdGrp.Name = subCmdGrpName
+			// Add the name to the sub commands for this group
+			for subCmdName, subCmd := range subCmdGrp.SubCmd {
+				subCmd.Name = subCmdName
+				subCmdGrp.SubCmd[subCmdName] = subCmd
+			}
+			cmd.SubCmdGrp[subCmdGrpName] = subCmdGrp
+		}
+		// For sub commands, it just needs to add names to the
+		// sub commands themselves
+		for subCmdName, subCmd := range cmd.SubCmd {
+			subCmd.Name = subCmdName
+			cmd.SubCmd[subCmdName] = subCmd
+		}
+		commands[name] = cmd
+	}
+	return commands
+}
+
+func createCommands(session *discordgo.Session, commands map[string]WebhookSlashCommand) []*discordgo.ApplicationCommand {
+	// Create an array of commands we created
+	createdCommands := []*discordgo.ApplicationCommand{}
+	// Add all of our commands
+	for _, cmd := range commands {
+		// Attempt to create a command
+		createdCommand, err := session.ApplicationCommandCreate(session.State.User.ID, "", cmd.Info())
+		if err != nil {
+			log.Printf("Failed to register command: %v", cmd.Name)
+		} else {
+			log.Printf("Registered command: %v", cmd.Name)
+		}
+		// Store that command in our array
+		createdCommands = append(createdCommands, createdCommand)
+	}
+	return createdCommands
+}
+
+func deleteCommands(session *discordgo.Session, createdCommands []*discordgo.ApplicationCommand) {
+	// Try to remove our commands
+	for _, cmd := range createdCommands {
+		// Try to remove a command
+		err := session.ApplicationCommandDelete(session.State.User.ID, "", cmd.ID)
+		// Don't panic on failure but log it
+		if err != nil {
+			log.Printf("Failed to remove command: %v with error %v ", cmd.Name, err)
+		}
 	}
 
+}
+
+func Run() {
+	// Get our config object
+	config := config.Config()
+
+	// Read our token from the config
+	token := config.GetString("token")
+
+	// Login to discord and get our session
+	session := login(token)
+
+	commands := getCommandsFromConfig(config)
+
+	// Add a handler that maps commands to their handler functions
 	session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if cmd, ok := commands[i.ApplicationCommandData().Name]; ok {
 			cmd.Handler(s, i)
 		}
 	})
 
-	createdCommands := []*discordgo.ApplicationCommand{}
-	for _, cmd := range commands {
-		createdCommand, err := session.ApplicationCommandCreate(session.State.User.ID, "", cmd.Info())
-		if err != nil {
-			log.Printf("Failed to register command: ", cmd.Name)
-		}
-		createdCommands = append(createdCommands, createdCommand)
-	}
+	// Try to create our commands
+	createdCommands := createCommands(session, commands)
 
+	// Don't exit until we receive stop from the OS
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	log.Println("Press Ctrl+c to exit")
 	<-stop
 
-	for _, cmd := range createdCommands {
-		err := session.ApplicationCommandDelete(session.State.User.ID, "", cmd.ID)
-		if err != nil {
-			log.Printf("Failed to remove command: %v with error %v ", cmd.Name, err)
-		}
-	}
+	// Try to delete out created commands
+	deleteCommands(session, createdCommands)
 
 	return
 }

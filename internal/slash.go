@@ -2,6 +2,7 @@ package internal
 
 import (
 	"github.com/bwmarrin/discordgo"
+	"log"
 )
 
 // Returns the information needed for discord to register the commands
@@ -97,16 +98,22 @@ func (w *WebhookSlashCommand) Handler(s *discordgo.Session, i *discordgo.Interac
 		// Otherwise this is the correct command for the handler
 	} else {
 
-		// Process our webhook request
-		w.request()
-
 		// Return the given response for this command
+		// Do this before calling our request because we need to respond
+		// right away
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: w.Resp,
 			},
 		})
+
+		// Process our webhook request
+		err := w.request()
+		// Check for errors
+		if err != nil {
+			log.Printf("ERROR: could not process webhook request for command %v %v", w.Name, err)
+		}
 	}
 	// Reset our called options
 	w.CalledOptions = nil

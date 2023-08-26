@@ -17,12 +17,13 @@ commands:
         description: argument 2
         required: false
     data: 
-      user: "{{ arg1 }}"
-      id: "{{ arg2 }}"
+      user: "{{ .arg1 }}"
+      id: "{{ .arg2 }}"
   short_test:
     description: my pretty short command
     response: my quick lovely response
     url: https://github.com
+    method: GET
   outer:
     description: Outer command
     subcommand-group:
@@ -46,8 +47,8 @@ commands:
                 description: argument 2
                 required: false
             data: 
-              user: "{{ arg1 }}"
-              id: "{{ arg2 }}"
+              user: "{{ .arg1 }}"
+              id: "{{ .arg2 }}"
     subcommand:
       inner2:
         description: Command nested one level deep
@@ -66,8 +67,8 @@ commands:
             description: argument 2
             required: false
         data: 
-          user: "{{ arg1 }}"
-          id: "{{ arg2 }}"
+          user: "{{ .arg1 }}"
+          id: "{{ .arg2 }}"
 
 
 

@@ -110,6 +110,7 @@ func Run() {
 	// Login to discord and get our session
 	session := login(token)
 
+	// Get our commands map
 	commands := getCommandsFromConfig(config)
 
 	// Add a handler that maps commands to their handler functions

@@ -6,7 +6,9 @@ type WebhookSlashCommand struct {
 	Name          string                         `mapstructure:"name"`
 	Desc          string                         `mapstructure:"description"`
 	Resp          string                         `mapstructure:"response"`
+	RespCode      int                            `mapstructure:"response-code"`
 	URL           string                         `mapstructure:"url"`
+	Method        string                         `mapstructure:"method"`
 	Headers       []WebhookHeader                `mapstructure:"headers"`
 	SubCmd        map[string]WebhookSlashCommand `mapstructure:"subcommand"`
 	SubCmdGrp     map[string]WebhookSlashCommand `mapstructure:"subcommand-group"`

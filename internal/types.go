@@ -10,8 +10,8 @@ type WebhookSlashCommand struct {
 	URL           string                         `mapstructure:"url"`
 	Method        string                         `mapstructure:"method"`
 	Headers       []WebhookHeader                `mapstructure:"headers"`
-	SubCmd        map[string]WebhookSlashCommand `mapstructure:"subcommand"`
-	SubCmdGrp     map[string]WebhookSlashCommand `mapstructure:"subcommand-group"`
+	SubCmd        map[string]WebhookSlashCommand `mapstructure:"subcommands"`
+	SubCmdGrp     map[string]WebhookSlashCommand `mapstructure:"subcommand-groups"`
 	Arguments     []WebhookArgument              `mapstructure:"arguments"`
 	Data          map[string]interface{}         `mapstructure:"data"`
 	CalledOptions []*discordgo.ApplicationCommandInteractionDataOption

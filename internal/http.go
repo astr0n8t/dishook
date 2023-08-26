@@ -63,7 +63,12 @@ func (w *WebhookSlashCommand) request() error {
 	}
 	client := &http.Client{}
 
-	req, err := http.NewRequest(w.Method, w.URL, bytes.NewBuffer(payload))
+	method := w.Method
+	if method == "" {
+		method = "POST"
+	}
+
+	req, err := http.NewRequest(method, w.URL, bytes.NewBuffer(payload))
 
 	for _, header := range w.Headers {
 		req.Header.Add(header.Name, header.Value)

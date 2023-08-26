@@ -112,7 +112,7 @@ func (w *WebhookSlashCommand) Handler(s *discordgo.Session, i *discordgo.Interac
 		err := w.request()
 		// Check for errors
 		if err != nil {
-			log.Printf("ERROR: could not process webhook request for command %v %v", w.Name, err)
+			log.Printf("ERROR: could not process webhook request for command %v: %v", w.Name, err)
 		}
 	}
 	// Reset our called options

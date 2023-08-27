@@ -109,6 +109,11 @@ func (w *WebhookSlashCommand) request() error {
 	// Create our new request using our method, url, and payload
 	req, err := http.NewRequest(method, w.URL, bytes.NewBuffer(payload))
 
+	// Add auth headers if they exist
+	if w.AuthHeaderName != "" {
+		req.Header.Add(w.AuthHeaderName, w.AuthHeaderValue)
+	}
+
 	// Add any headers for the webhook
 	for _, header := range w.Headers {
 		req.Header.Add(header.Name, header.Value)

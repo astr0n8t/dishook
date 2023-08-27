@@ -4,17 +4,19 @@ import "github.com/bwmarrin/discordgo"
 
 // Overall struct to hold webhook command data
 type WebhookSlashCommand struct {
-	Name      string                         `mapstructure:"name"`
-	Desc      string                         `mapstructure:"description"`
-	Resp      string                         `mapstructure:"response"`
-	RespCode  int                            `mapstructure:"response_code"`
-	URL       string                         `mapstructure:"url"`
-	Method    string                         `mapstructure:"method"`
-	Headers   []WebhookHeader                `mapstructure:"headers"`
-	SubCmd    map[string]WebhookSlashCommand `mapstructure:"subcommands"`
-	SubCmdGrp map[string]WebhookSlashCommand `mapstructure:"subcommand_groups"`
-	Arguments []WebhookArgument              `mapstructure:"arguments"`
-	Data      map[string]interface{}         `mapstructure:"data"`
+	Name            string                         `mapstructure:"name"`
+	Desc            string                         `mapstructure:"description"`
+	Resp            string                         `mapstructure:"response"`
+	RespCode        int                            `mapstructure:"response_code"`
+	URL             string                         `mapstructure:"url"`
+	Method          string                         `mapstructure:"method"`
+	AuthHeaderName  string                         `mapstructure:"auth_header_name"`
+	AuthHeaderValue string                         `mapstructure:"auth_header_value"`
+	Headers         []WebhookHeader                `mapstructure:"headers"`
+	SubCmd          map[string]WebhookSlashCommand `mapstructure:"subcommands"`
+	SubCmdGrp       map[string]WebhookSlashCommand `mapstructure:"subcommand_groups"`
+	Arguments       []WebhookArgument              `mapstructure:"arguments"`
+	Data            map[string]interface{}         `mapstructure:"data"`
 	// These fields are context specific
 	CalledOptions []*discordgo.ApplicationCommandInteractionDataOption
 	CalledUser    *discordgo.Member

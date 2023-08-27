@@ -23,7 +23,7 @@ ARG TARGETARCH
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /dishook
 
 # Deploy the application binary into a lean image
-FROM gcr.io/distroless/base-debian11 AS build-release-stage
+FROM gcr.io/distroless/static-debian11 AS build-release-stage
 
 WORKDIR /
 

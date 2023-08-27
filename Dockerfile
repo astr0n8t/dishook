@@ -1,5 +1,6 @@
 # Build Stage
-FROM golang:1.21 AS build-stage
+ARG BUILDPLATFORM
+FROM --platform=${BUILDPLATFORM} golang:1.21 AS build-stage
 
 LABEL app="dishook"
 LABEL REPO="https://github.com/astr0n8t/dishook"
@@ -11,7 +12,10 @@ RUN go mod download
 
 COPY *.go ./
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /dishook
+ARG TARGETOS
+ARG TARGETARCH
+
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /dishook
 
 # Run the tests in the container
 FROM build-stage AS run-test-stage

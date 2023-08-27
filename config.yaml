@@ -1,11 +1,13 @@
 token: my_secret
-guild_id: 0
+guild_id: ""
 commands:
   test:
     description: my pretty command
     response: my lovely response
     response_code: 200
     url: https://google.com
+    auth_header_name: Authorization
+    auth_header_value: "Bearer token"
     headers:
       - name: X-Forwarded-For
         value: somevalue

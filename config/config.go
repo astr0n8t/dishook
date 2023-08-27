@@ -1,6 +1,7 @@
 package config
 
 import (
+	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -61,7 +62,14 @@ func readViperConfig(appName string) *viper.Viper {
 	v.ReadInConfig()
 
 	v.SetEnvPrefix(appName)
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
+
+	// workaround because viper does not treat env vars the same as other config
+	for _, key := range v.AllKeys() {
+		val := v.Get(key)
+		v.Set(key, val)
+	}
 
 	return v
 }

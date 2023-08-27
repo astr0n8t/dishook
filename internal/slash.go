@@ -53,22 +53,29 @@ func (w *WebhookSlashCommand) subCmdInfo() []*discordgo.ApplicationCommandOption
 func (w *WebhookSlashCommand) optionsInfo() []*discordgo.ApplicationCommandOption {
 	options := []*discordgo.ApplicationCommandOption{}
 	for _, opt := range w.Arguments {
-		options = append(options, &discordgo.ApplicationCommandOption{
-			Type:        discordCommandOption[opt.Type],
-			Name:        opt.Name,
-			Description: opt.Desc,
-			Required:    opt.Req,
-		})
+		if !opt.DiscordInfo {
+			options = append(options, &discordgo.ApplicationCommandOption{
+				Type:        discordCommandOption[opt.Type],
+				Name:        opt.Name,
+				Description: opt.Desc,
+				Required:    opt.Req,
+			})
+		}
 	}
 	return options
 }
 
 // The actual function that gets called when a command is run
-func (w *WebhookSlashCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+// Its a value receiver because it will add specific interaction context
+// to the WebhookSlashCommand
+func (w WebhookSlashCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// Check if we have initialized our options yet
 	if w.CalledOptions == nil {
 		// If we haven't get the options from the interaction
 		w.CalledOptions = i.ApplicationCommandData().Options
+	}
+	if w.CalledUser == nil {
+		w.CalledUser = i.Member
 	}
 	// Check if this is a subcommand call
 	if len(w.SubCmdGrp) != 0 || len(w.SubCmd) != 0 {
@@ -84,7 +91,7 @@ func (w *WebhookSlashCommand) Handler(s *discordgo.Session, i *discordgo.Interac
 			// Set the name to the inner subcommand
 			name = w.CalledOptions[0].Name
 			// Set the current cmd to the sub command group
-			cmd = &subCmdGrp
+			cmd = subCmdGrp
 		}
 		// Check if the given name is a subcommand of the current
 		// command
@@ -115,7 +122,5 @@ func (w *WebhookSlashCommand) Handler(s *discordgo.Session, i *discordgo.Interac
 			log.Printf("ERROR: could not process webhook request for command %v: %v", w.Name, err)
 		}
 	}
-	// Reset our called options
-	w.CalledOptions = nil
 	return
 }

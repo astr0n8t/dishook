@@ -12,9 +12,20 @@ func (w *WebhookSlashCommand) getPayloadWithArguments(data string) ([]byte, erro
 	args := make(map[string]interface{})
 
 	for _, arg := range w.Arguments {
-		for _, calledArg := range w.CalledOptions {
-			if arg.Name == calledArg.Name {
-				args[arg.Name] = calledArg.Value
+
+		if arg.DiscordInfo {
+			if arg.Name == "discord_user_name" {
+				args[arg.Name] = w.CalledUser.User.Username
+			}
+		} else {
+			for _, calledArg := range w.CalledOptions {
+				if arg.Name == calledArg.Name {
+					args[arg.Name] = calledArg.Value
+				}
+			}
+			_, valExists := args[arg.Name]
+			if !valExists && !arg.Req && arg.Default != nil {
+				args[arg.Name] = arg.Default
 			}
 		}
 	}

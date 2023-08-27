@@ -1,8 +1,10 @@
 token: my_secret
+guild_id: 0
 commands:
   test:
     description: my pretty command
     response: my lovely response
+    response_code: 200
     url: https://google.com
     headers:
       - name: X-Forwarded-For
@@ -15,10 +17,15 @@ commands:
       - name: arg2
         type: int
         description: argument 2
+        default: 0
         required: false
+      - name: discord_user_name
+        type: string
+        discord: true
     data: 
-      user: "{{ .arg1 }}"
+      user: "{{ .discord_user_name }}"
       id: "{{ .arg2 }}"
+      arg: "{{ .arg1 }}"
   short_test:
     description: my pretty short command
     response: my quick lovely response
@@ -26,7 +33,7 @@ commands:
     method: GET
   outer:
     description: Outer command
-    subcommand-group:
+    subcommand_group:
       middle:
         description: Inner command group
         subcommand:
@@ -69,9 +76,4 @@ commands:
         data: 
           user: "{{ .arg1 }}"
           id: "{{ .arg2 }}"
-
-
-
-
-
 

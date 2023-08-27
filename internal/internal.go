@@ -6,13 +6,16 @@ import (
 	"os/signal"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/fsnotify/fsnotify"
 
 	"github.com/astr0n8t/dishook/config"
 )
 
-func init() {
-	return
-}
+var (
+	loadedSession  *discordgo.Session
+	loadedCommands []*discordgo.ApplicationCommand
+	loadedGuildID  string
+)
 
 func login(token string) *discordgo.Session {
 	s, err := discordgo.New("Bot " + token)
@@ -30,7 +33,6 @@ func login(token string) *discordgo.Session {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
 
-	defer s.Close()
 	return s
 }
 
@@ -69,13 +71,13 @@ func getCommandsFromConfig(config config.Provider) map[string]WebhookSlashComman
 	return commands
 }
 
-func createCommands(session *discordgo.Session, commands map[string]WebhookSlashCommand) []*discordgo.ApplicationCommand {
+func createCommands(session *discordgo.Session, commands map[string]WebhookSlashCommand, guildID string) []*discordgo.ApplicationCommand {
 	// Create an array of commands we created
 	createdCommands := []*discordgo.ApplicationCommand{}
 	// Add all of our commands
 	for _, cmd := range commands {
 		// Attempt to create a command
-		createdCommand, err := session.ApplicationCommandCreate(session.State.User.ID, "", cmd.Info())
+		createdCommand, err := session.ApplicationCommandCreate(session.State.User.ID, guildID, cmd.Info())
 		if err != nil {
 			log.Printf("Failed to register command: %v", cmd.Name)
 		} else {
@@ -87,28 +89,33 @@ func createCommands(session *discordgo.Session, commands map[string]WebhookSlash
 	return createdCommands
 }
 
-func deleteCommands(session *discordgo.Session, createdCommands []*discordgo.ApplicationCommand) {
+func deleteCommands(session *discordgo.Session, createdCommands []*discordgo.ApplicationCommand, guildID string) {
 	// Try to remove our commands
 	for _, cmd := range createdCommands {
 		// Try to remove a command
-		err := session.ApplicationCommandDelete(session.State.User.ID, "", cmd.ID)
+		err := session.ApplicationCommandDelete(session.State.User.ID, guildID, cmd.ID)
 		// Don't panic on failure but log it
 		if err != nil {
 			log.Printf("Failed to remove command: %v with error %v ", cmd.Name, err)
+		} else {
+			log.Printf("Removed command: %v", cmd.Name)
 		}
 	}
 
 }
 
-func Run() {
+func Load() (*discordgo.Session, []*discordgo.ApplicationCommand, string) {
 	// Get our config object
 	config := config.Config()
 
 	// Read our token from the config
 	token := config.GetString("token")
+	// Read in the guild id to register the commands in
+	guildID := config.GetString("guild_id")
 
 	// Login to discord and get our session
 	session := login(token)
+	log.Printf("Loaded guild_id: %v ", guildID)
 
 	// Get our commands map
 	commands := getCommandsFromConfig(config)
@@ -121,7 +128,33 @@ func Run() {
 	})
 
 	// Try to create our commands
-	createdCommands := createCommands(session, commands)
+	return session, createCommands(session, commands, guildID), guildID
+}
+
+func Reload(e fsnotify.Event) {
+	// Log that we're reloading the config
+	log.Printf("Config file changed: %v Reloading config", e.Name)
+	deleteCommands(loadedSession, loadedCommands, loadedGuildID)
+	loadedSession.Close()
+	// Reset our commands
+	loadedSession, loadedCommands = nil, nil
+	// Load the config again
+	loadedSession, loadedCommands, loadedGuildID = Load()
+	log.Printf("Reloaded config: %v", e.Name)
+}
+
+func Run() {
+
+	// Make sure we can load config
+	config := config.Config()
+	log.Printf("Loaded config file %v", config.ConfigFileUsed())
+	// Add config hot reloading
+	config.OnConfigChange(Reload)
+	config.WatchConfig()
+	log.Printf("Watching config for changes")
+
+	// Login and start
+	loadedSession, loadedCommands, loadedGuildID = Load()
 
 	// Don't exit until we receive stop from the OS
 	stop := make(chan os.Signal, 1)
@@ -130,7 +163,6 @@ func Run() {
 	<-stop
 
 	// Try to delete out created commands
-	deleteCommands(session, createdCommands)
-
-	return
+	deleteCommands(loadedSession, loadedCommands, loadedGuildID)
+	loadedSession.Close()
 }

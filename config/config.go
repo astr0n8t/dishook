@@ -3,6 +3,7 @@ package config
 import (
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
@@ -26,6 +27,8 @@ type Provider interface {
 	InConfig(key string) bool
 	IsSet(key string) bool
 	UnmarshalKey(string, interface{}, ...viper.DecoderConfigOption) error
+	OnConfigChange(run func(in fsnotify.Event))
+	WatchConfig()
 }
 
 var defaultConfig *viper.Viper
@@ -46,6 +49,8 @@ func init() {
 
 func readViperConfig(appName string) *viper.Viper {
 	v := viper.New()
+
+	v.SetDefault("guild_id", "")
 
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")

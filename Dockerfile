@@ -11,6 +11,11 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY *.go ./
+# Copy all internal modules
+COPY cmd/*.go ./cmd/
+COPY config/*.go ./config/
+COPY internal/*.go ./internal/
+COPY version/*.go ./version/
 
 ARG TARGETOS
 ARG TARGETARCH

@@ -1,40 +1,28 @@
 # Build Stage
 FROM golang:1.21 AS build-stage
 
-LABEL app="build-dishook"
+LABEL app="dishook"
 LABEL REPO="https://github.com/astr0n8t/dishook"
 
-ENV PROJPATH=/go/src/github.com/astr0n8t/dishook
+WORKDIR /app
 
-# Because of https://github.com/docker/docker/issues/14914
-ENV PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+COPY go.mod go.sum ./
+RUN go mod download
 
-ADD . /go/src/github.com/astr0n8t/dishook
-WORKDIR /go/src/github.com/astr0n8t/dishook
+COPY *.go ./
 
-RUN make build-alpine
+RUN CGO_ENABLED=0 GOOS=linux go build -o /dishook
 
-# Final Stage
-FROM ghcr.io/astr0n8t/dishook:latest
+# Run the tests in the container
+FROM build-stage AS run-test-stage
 
-ARG GIT_COMMIT
-ARG VERSION
-LABEL REPO="https://github.com/astr0n8t/dishook"
-LABEL GIT_COMMIT=$GIT_COMMIT
-LABEL VERSION=$VERSION
+# Deploy the application binary into a lean image
+FROM gcr.io/distroless/base-debian11 AS build-release-stage
 
-# Because of https://github.com/docker/docker/issues/14914
-ENV PATH=$PATH:/opt/dishook/bin
+WORKDIR /
 
-WORKDIR /opt/dishook/bin
+COPY --from=build-stage /dishook /dishook
 
-COPY --from=build-stage /go/src/github.com/astr0n8t/dishook/bin/dishook /opt/dishook/bin/
-RUN chmod +x /opt/dishook/bin/dishook
+USER nonroot:nonroot
 
-# Create appuser
-RUN adduser -D -g '' dishook
-USER dishook
-
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-
-CMD ["/opt/dishook/bin/dishook"]
+ENTRYPOINT ["/dishook"]

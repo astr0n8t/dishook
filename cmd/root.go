@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/astr0n8t/dishook/internal"
+	"github.com/spf13/cobra"
 )
-
-var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -16,7 +14,8 @@ var rootCmd = &cobra.Command{
 	Short: "Converts slash commands to webhooks",
 	Long: `Dishook allows you to take a definition through templating and YAML
 and create very simple Discord commands which correlate to web requests`,
-	Run: func(cmd *cobra.Command, args []string) { 
+	// Simply call the internal run command
+	Run: func(cmd *cobra.Command, args []string) {
 		internal.Run()
 	},
 }

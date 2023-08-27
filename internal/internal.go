@@ -11,31 +11,38 @@ import (
 	"github.com/astr0n8t/dishook/config"
 )
 
+// Global variables for internal
 var (
 	loadedSession  *discordgo.Session
 	loadedCommands []*discordgo.ApplicationCommand
 	loadedGuildID  string
 )
 
+// Logs in to Discord and returns a new session
+// If this function fails, it exits with a fatal error
 func login(token string) *discordgo.Session {
+	// Try to create a new session
 	s, err := discordgo.New("Bot " + token)
-
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
 
+	// Add a handler to log when a login is completed
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	})
 
+	// Open a new webhook connection
 	err = s.Open()
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
 
+	// Return the discord session
 	return s
 }
 
+// Gets a map of commands out of the config
 func getCommandsFromConfig(config config.Provider) map[string]WebhookSlashCommand {
 	// Store the commands in a map
 	commands := map[string]WebhookSlashCommand{}
@@ -71,6 +78,7 @@ func getCommandsFromConfig(config config.Provider) map[string]WebhookSlashComman
 	return commands
 }
 
+// Creates the commands in discord
 func createCommands(session *discordgo.Session, commands map[string]WebhookSlashCommand, guildID string) []*discordgo.ApplicationCommand {
 	// Create an array of commands we created
 	createdCommands := []*discordgo.ApplicationCommand{}
@@ -89,6 +97,7 @@ func createCommands(session *discordgo.Session, commands map[string]WebhookSlash
 	return createdCommands
 }
 
+// Deletes the commands from discord
 func deleteCommands(session *discordgo.Session, createdCommands []*discordgo.ApplicationCommand, guildID string) {
 	// Try to remove our commands
 	for _, cmd := range createdCommands {
@@ -101,9 +110,9 @@ func deleteCommands(session *discordgo.Session, createdCommands []*discordgo.App
 			log.Printf("Removed command: %v", cmd.Name)
 		}
 	}
-
 }
 
+// Loads a new session and creates all the commands
 func Load() (*discordgo.Session, []*discordgo.ApplicationCommand, string) {
 	// Get our config object
 	config := config.Config()
@@ -131,10 +140,12 @@ func Load() (*discordgo.Session, []*discordgo.ApplicationCommand, string) {
 	return session, createCommands(session, commands, guildID), guildID
 }
 
+// Kills the current sessioon and tries to start a new one
 func Reload(e fsnotify.Event) {
 	// Log that we're reloading the config
 	log.Printf("Config file changed: %v Reloading config", e.Name)
 	deleteCommands(loadedSession, loadedCommands, loadedGuildID)
+	// Close our websocket with discord
 	loadedSession.Close()
 	// Reset our commands
 	loadedSession, loadedCommands = nil, nil
@@ -143,11 +154,13 @@ func Reload(e fsnotify.Event) {
 	log.Printf("Reloaded config: %v", e.Name)
 }
 
+// Runs dishook
 func Run() {
 
 	// Make sure we can load config
 	config := config.Config()
 	log.Printf("Loaded config file %v", config.ConfigFileUsed())
+
 	// Add config hot reloading
 	config.OnConfigChange(Reload)
 	config.WatchConfig()
@@ -164,5 +177,6 @@ func Run() {
 
 	// Try to delete out created commands
 	deleteCommands(loadedSession, loadedCommands, loadedGuildID)
+	// Close our websocket with discord
 	loadedSession.Close()
 }

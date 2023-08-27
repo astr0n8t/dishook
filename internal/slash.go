@@ -5,25 +5,31 @@ import (
 	"log"
 )
 
-// Returns the information needed for discord to register the commands
+// Returns a pointer to the information needed for discord to register the commands
 func (w *WebhookSlashCommand) Info() *discordgo.ApplicationCommand {
+	// Creates a new ApplicationCommand
 	cmd := &discordgo.ApplicationCommand{
 		Name:        w.Name,
 		Description: w.Desc,
 		Options:     []*discordgo.ApplicationCommandOption{},
 	}
 
+	// Add any subcommands or arguments to the command
 	if len(w.SubCmd) == 0 && len(w.SubCmdGrp) == 0 {
 		cmd.Options = w.optionsInfo()
 	} else {
 		cmd.Options = append(w.subCmdInfo(), w.subCmdGrpInfo()...)
 	}
 
+	// Return a pointer to the command
 	return cmd
 }
 
+// Returns an array of pointers to subcommand groups
 func (w *WebhookSlashCommand) subCmdGrpInfo() []*discordgo.ApplicationCommandOption {
+	// Create the array
 	subCmdGrp := []*discordgo.ApplicationCommandOption{}
+	// Get all subcommand groups
 	for name, cmd := range w.SubCmdGrp {
 		subCmdGrp = append(subCmdGrp, &discordgo.ApplicationCommandOption{
 			Name:        name,
@@ -36,8 +42,11 @@ func (w *WebhookSlashCommand) subCmdGrpInfo() []*discordgo.ApplicationCommandOpt
 	return subCmdGrp
 }
 
+// Returns an array of pointers to subcommands
 func (w *WebhookSlashCommand) subCmdInfo() []*discordgo.ApplicationCommandOption {
+	// Create the array
 	subCmd := []*discordgo.ApplicationCommandOption{}
+	// Get all subcommands
 	for name, cmd := range w.SubCmd {
 		subCmd = append(subCmd, &discordgo.ApplicationCommandOption{
 			Name:        name,
@@ -50,8 +59,11 @@ func (w *WebhookSlashCommand) subCmdInfo() []*discordgo.ApplicationCommandOption
 	return subCmd
 }
 
+// Returns an array of pointers to command options
 func (w *WebhookSlashCommand) optionsInfo() []*discordgo.ApplicationCommandOption {
+	// Create the array
 	options := []*discordgo.ApplicationCommandOption{}
+	// Get all options
 	for _, opt := range w.Arguments {
 		if !opt.DiscordInfo {
 			options = append(options, &discordgo.ApplicationCommandOption{

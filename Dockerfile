@@ -7,10 +7,8 @@ LABEL REPO="https://github.com/astr0n8t/dishook"
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY . ./
 RUN go mod download
-
-COPY *.go ./
 
 ARG TARGETOS
 ARG TARGETARCH

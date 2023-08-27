@@ -1,8 +1,4 @@
-# DisHook
+# dishook
 
-Convert slash commands to webhooks... Thats it.
+Converts discord slash commands to webhooks.
 
-
-### TODO
-
-- [ ] Document environment variables

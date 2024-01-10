@@ -1,6 +1,6 @@
 module github.com/astr0n8t/dishook
 
-go 1.21.5
+go 1.21.6
 
 require (
 	github.com/bwmarrin/discordgo v0.27.1

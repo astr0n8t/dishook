@@ -1,6 +1,6 @@
 # Build Stage
 ARG BUILDPLATFORM
-FROM --platform=${BUILDPLATFORM} golang:1.23.5 AS build-stage
+FROM --platform=${BUILDPLATFORM} golang:1.23.6 AS build-stage
 
 LABEL app="dishook"
 LABEL REPO="https://github.com/astr0n8t/dishook"

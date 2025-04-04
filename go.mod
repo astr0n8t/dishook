@@ -4,7 +4,7 @@ go 1.22.2
 
 require (
 	github.com/bwmarrin/discordgo v0.28.1
-	github.com/fsnotify/fsnotify v1.8.0
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 )

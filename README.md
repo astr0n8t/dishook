@@ -4,15 +4,14 @@
 
 ## Features
 
-- 🔗 **Simple webhook integration** - Map Discord slash commands to HTTP endpoints
-- ⚙️ **Flexible configuration** - YAML-based configuration with hot-reloading
-- 🎯 **Support for subcommands** - Create nested command structures with subcommand groups
-- 📝 **Template support** - Use Go templates to dynamically populate request data
-- 🔑 **Authentication** - Built-in support for authentication headers
-- 🔄 **Hot reload** - Automatically reload configuration changes without restarting
-- 🐳 **Docker support** - Run as a containerized application
-- 📊 **Custom arguments** - Support for string, int, float, and boolean argument types
-- 👤 **Discord context** - Access Discord user information in your webhooks
+- **Simple webhook integration** - Map Discord slash commands to HTTP endpoints
+- **Flexible configuration** - YAML-based configuration with hot-reloading
+- **Support for subcommands** - Create nested command structures with subcommand groups
+- **Template support** - Use Go templates to dynamically populate request data
+- **Authentication** - Built-in support for authentication headers
+- **Docker support** - Run as a containerized application
+- **Custom arguments** - Support for string, int, float, and boolean argument types
+- **Discord context** - Access Discord user information in your webhooks
 
 ## Installation
 
